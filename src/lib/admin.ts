@@ -1,0 +1,7 @@
+import { supabase } from '@/lib/supabase'
+export type Metrics = { users: number; clients: number; professionals: number; services: number; requests: number; bookings: number; completed: number; gmv: number; average_ticket: number }
+export async function getAdminMetrics() { const { data, error } = await supabase.rpc('admin_metrics'); if (error) throw error; return data as Metrics }
+export async function getAdminUsers(role?: 'client' | 'professional') { let query = supabase.from('profiles').select('id,full_name,role,phone,created_at,is_blocked,blocked_reason').order('created_at', { ascending: false }).limit(100); if (role) query = query.eq('role', role); const { data, error } = await query; if (error) throw error; return data ?? [] }
+export async function getAdminResources(table: 'categories' | 'services' | 'service_requests' | 'bookings' | 'reviews') { const { data, error } = await supabase.from(table).select('*').order('created_at', { ascending: false }).limit(100); if (error) throw error; return data ?? [] }
+export async function setUserBlocked(id: string, blocked: boolean, reason?: string) { const { error } = await supabase.rpc('admin_set_user_block', { p_user_id: id, p_blocked: blocked, p_reason: reason ?? null }); if (error) throw error }
+export async function moderate(table: 'services' | 'service_requests', id: string, status: 'approved' | 'rejected') { const { error } = await supabase.rpc('admin_moderate', { p_table: table, p_id: id, p_status: status }); if (error) throw error }
